@@ -1,55 +1,49 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public float speed = 10.0f;
-    public float xRange = 10.0f;
-    public float zRangeP = 14.0f;
-    public float zRangeN = 0.0f;
-
+    private float horizontalInput;
+    private float speed = 20.0f;
+    private float xRange = 20;
     public GameObject projectilePrefab;
-    public Vector3 offsetPos = new Vector3(0, 0, 2);
+
 
     // Update is called once per frame
     void Update()
     {
-        PlayerManager();
-    }
+        // Check for left and right bounds
+        if (transform.position.x < -xRange)
+        {
+            transform.position = new Vector3(-xRange, transform.position.y, transform.position.z);
+        }
 
-    void PlayerManager()
-    {
-        // Player Controls
-        float horizontalInput = Input.GetAxis("Horizontal");
-        float verticalInput = Input.GetAxis("Vertical");
+        if (transform.position.x > xRange)
+        {
+            transform.position = new Vector3(xRange, transform.position.y, transform.position.z);
+        }
 
-        // Combines the inputs into a single vector
-        Vector3 movement = new Vector3(horizontalInput, 0, verticalInput);
+        // Player movement left to right
+        horizontalInput = Input.GetAxis("Horizontal");
+        transform.Translate(Vector3.right * Time.deltaTime * speed * horizontalInput);
 
-        // Move the player
-        transform.Translate(movement * Time.deltaTime * speed);
 
-        // POSITION BOUNDARY
-        // Used Vector3.ClampMagnitude 
-        float clampedX = Mathf.Clamp(transform.position.x, -xRange, xRange);
-        float clampedZ = Mathf.Clamp(transform.position.z, -zRangeN, zRangeP);
-
-        // Update the player's position
-        transform.position = new Vector3(clampedX, transform.position.y, clampedZ);
-
-        // Projectile
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            LaunchProjectile();
+            // No longer necessary to Instantiate prefabs
+            // Instantiate(projectilePrefab, transform.position, projectilePrefab.transform.rotation);
+
+            // Get an object object from the pool
+            GameObject pooledProjectile = ObjectPooler.SharedInstance.GetPooledObject();
+            if (pooledProjectile != null)
+            {
+                pooledProjectile.SetActive(true); // activate it
+                pooledProjectile.transform.position = transform.position; // position it at player
+            }
         }
-    }
 
-    void LaunchProjectile()
-    {
-        // Launch Projectile from player
-        // Instantiate Makes a copy
 
-        Instantiate(projectilePrefab, transform.position + offsetPos, projectilePrefab.transform.rotation);
+
     }
 }
